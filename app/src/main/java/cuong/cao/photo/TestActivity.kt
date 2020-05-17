@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 
@@ -19,7 +20,11 @@ class TestActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_test)
+        setContentView(R.layout.activity_test1)
+        Log.i("tag11", this.toString())
+        val mKeyGuardManager = getSystemService(KEYGUARD_SERVICE) as? KeyguardManager
+        val mLock = mKeyGuardManager?.newKeyguardLock(TestActivity::class.java.simpleName)
+        mLock?.disableKeyguard();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
@@ -31,7 +36,8 @@ class TestActivity : AppCompatActivity() {
             window.addFlags(
                 WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD or
                         WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                        WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
+                        WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
+                        WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
             )
         }
         registerReceiver(myBroadcastReceiver, IntentFilter().apply {
@@ -39,8 +45,18 @@ class TestActivity : AppCompatActivity() {
         })
     }
 
+    override fun onResume() {
+        super.onResume()
+        App.getInstance().isTop = true
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         unregisterReceiver(myBroadcastReceiver)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        App.getInstance().isTop = false
     }
 }
