@@ -2,6 +2,7 @@ package cuong.cao.photo
 
 import android.app.Activity
 import android.app.Application
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 
@@ -14,6 +15,9 @@ class App : Application(), Application.ActivityLifecycleCallbacks {
     }
 
     internal var isTop = false
+    internal var contextDecor: Context? = null
+    internal var lastAction = 0L
+    internal var bootime = 0L
 
     override fun onCreate() {
         super.onCreate()

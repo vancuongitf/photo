@@ -33,7 +33,6 @@ class CameraPreview(
                 setPreviewDisplay(holder)
                 startPreview()
             } catch (e: IOException) {
-                context.sendBroadcast(Intent("completed"))
                 Log.d(TAG, "Error setting camera preview: ${e.message}")
             }
         }
@@ -68,7 +67,6 @@ class CameraPreview(
                 startPreview()
             } catch (e: Exception) {
                 Log.d(TAG, "Error starting camera preview: ${e.message}")
-                context.sendBroadcast(Intent("completed"))
             }
         }
     }

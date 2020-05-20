@@ -3,7 +3,6 @@ package cuong.cao.photo
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -16,10 +15,33 @@ import androidx.appcompat.app.AppCompatActivity
  */
 class TestActivity : AppCompatActivity() {
 
-    private val myBroadcastReceiver = Broadcast()
+    companion object {
+        private var instance: TestActivity? = null
+
+        internal fun start(context: Context) {
+            if (instance != null) {
+                if (instance?.isPause == true) {
+                    instance?.finish()
+                    instance = null
+                    Log.i("tag11", "dcmm")
+                    context.startActivity(Intent(context, TestActivity::class.java).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    })
+                }
+            } else {
+                Log.i("tag11","asdsad")
+                context.startActivity(Intent(context, TestActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                })
+            }
+        }
+    }
+
+    private var isPause = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        instance = this
         setContentView(R.layout.activity_test1)
         Log.i("tag11", this.toString())
         val mKeyGuardManager = getSystemService(KEYGUARD_SERVICE) as? KeyguardManager
@@ -40,23 +62,21 @@ class TestActivity : AppCompatActivity() {
                         WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
             )
         }
-        registerReceiver(myBroadcastReceiver, IntentFilter().apply {
-            addAction(Intent.ACTION_SCREEN_OFF)
-        })
     }
 
     override fun onResume() {
         super.onResume()
         App.getInstance().isTop = true
+        isPause = false
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(myBroadcastReceiver)
     }
 
     override fun onPause() {
         super.onPause()
+        isPause = true
         App.getInstance().isTop = false
     }
 }

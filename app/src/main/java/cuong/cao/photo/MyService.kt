@@ -1,5 +1,6 @@
 package cuong.cao.photo
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -8,9 +9,7 @@ import android.content.*
 import android.content.pm.ResolveInfo
 import android.graphics.PixelFormat
 import android.media.AudioManager
-import android.os.Build
-import android.os.IBinder
-import android.os.SystemClock
+import android.os.*
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import android.util.Log
@@ -26,7 +25,6 @@ import androidx.media.VolumeProviderCompat
  */
 class MyService : Service() {
     companion object {
-        private const val NOTIFICATION_ID = 888
         const val CHANNEL_ID = "ForegroundServiceChannel"
     }
 
@@ -63,15 +61,17 @@ class MyService : Service() {
             100,  /*initial volume level*/
             50
         ) {
+            @SuppressLint("InvalidWakeLockTag")
             override fun onAdjustVolume(direction: Int) {
                 if (SystemClock.elapsedRealtime() - latBroadcastSend > 500) {
-                    sendBroadcast(Intent("abc"))
+                    sendBroadcast(Intent(Broadcast.ACTION_VOLUME_PRESSED))
                     latBroadcastSend = SystemClock.elapsedRealtime()
-                } else {
-                    Log.i(
-                        "tag11",
-                        "vcl: " + latBroadcastSend + "---" + SystemClock.elapsedRealtime()
-                    )
+                    val screenLock =
+                        (getSystemService(Context.POWER_SERVICE) as? PowerManager)?.newWakeLock(
+                            PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                            BuildConfig.APPLICATION_ID
+                        )
+                    screenLock?.acquire(1000)
                 }
             }
         }
@@ -82,9 +82,9 @@ class MyService : Service() {
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         registerReceiver(broadcast, IntentFilter().apply {
-            addAction("abc")
+            addAction(Broadcast.ACTION_VOLUME_PRESSED)
             addAction(Intent.ACTION_SCREEN_ON)
-            addAction("completed")
+            addAction(Broadcast.ACTION_COMPLETED)
         })
         val audio = (getSystemService(Context.AUDIO_SERVICE) as? AudioManager)
         val rec = ComponentName(
