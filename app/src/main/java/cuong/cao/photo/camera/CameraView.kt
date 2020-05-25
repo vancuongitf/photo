@@ -6,7 +6,6 @@ import android.graphics.*
 import android.hardware.Camera
 import android.os.Environment
 import android.os.Handler
-import android.util.Log
 import android.view.View
 import android.widget.LinearLayout
 import androidx.core.content.ContextCompat
@@ -35,74 +34,77 @@ class CameraView(context: Context) : LinearLayout(context) {
         // Create an instance of Camera
         mCamera = getCameraInstance()
         mCamera?.setDisplayOrientation(90)
-        val parameters = mCamera?.parameters
-        parameters?.setRotation(270)
-        parameters?.setPictureSize(3200, 1800)
-        mCamera?.parameters = parameters
-        mPreview = mCamera?.let {
-            // Create our Preview view
-            CameraPreview(context, it)
-        }
-
-        // Set the Preview view as the content of our activity.
-        mPreview?.also {
-            preview.addView(it)
-        }
-        mCamera?.stopPreview()
-        mCamera?.startPreview()
-
         Handler().postDelayed({
-            try {
-                mCamera?.takePicture(
-                    { },
-                    { _, _ -> },
-                    { p0, _ ->
-                        Single.fromCallable {
-                            val dir = File(
-                                Environment.getExternalStoragePublicDirectory(
-                                    Environment.DIRECTORY_DCIM
-                                ), "Photo_${Calendar.getInstance().timeInMillis}.png"
-                            )
-                            val os = dir.outputStream()
-                            mark(
-                                p0,
-                                SimpleDateFormat("dd-MM-YYYY HH:mm", Locale.getDefault()).format(
-                                    Calendar.getInstance().timeInMillis
-                                )
-                            )?.compress(Bitmap.CompressFormat.PNG, 100, os)
-                            os.flush()
-                            os.close()
-                        }.subscribeOn(Schedulers.io())
-                            .observeOn(AndroidSchedulers.mainThread())
-                            .doOnSubscribe {
-                                rlProgress.visibility = View.VISIBLE
-                            }
-                            .doFinally {
-                                rlProgress.visibility = View.GONE
-                            }
-                            .subscribe({
-                                tvSuccess.visibility = View.VISIBLE
-                                Handler().postDelayed({
-                                    tvSuccess?.visibility = View.GONE
-                                    mCamera?.startPreview()
-                                }, 3000)
-                            }) {
-                                tvError.visibility = View.VISIBLE
-                                Handler().postDelayed({
-                                    tvError?.visibility = View.GONE
-                                    mCamera?.startPreview()
-                                }, 3000)
-                            }
-                    })
-            } catch (e: Exception) {
-
+            val parameters = mCamera?.parameters
+            parameters?.setRotation(270)
+            mCamera?.parameters = parameters
+            mPreview = mCamera?.let {
+                // Create our Preview view
+                CameraPreview(context, it)
             }
-        }, 3000)
+
+            // Set the Preview view as the content of our activity.
+            mPreview?.also {
+                preview.addView(it)
+            }
+            mCamera?.stopPreview()
+            mCamera?.startPreview()
+
+            Handler().postDelayed({
+                try {
+                    mCamera?.takePicture(
+                        { },
+                        { _, _ -> },
+                        { p0, _ ->
+                            Single.fromCallable {
+                                val dir = File(
+                                    Environment.getExternalStoragePublicDirectory(
+                                        Environment.DIRECTORY_DCIM
+                                    ), "Photo_${Calendar.getInstance().timeInMillis}.png"
+                                )
+                                val os = dir.outputStream()
+                                mark(
+                                    p0,
+                                    SimpleDateFormat(
+                                        "dd-MM-YYYY HH:mm",
+                                        Locale.getDefault()
+                                    ).format(
+                                        Calendar.getInstance().timeInMillis
+                                    )
+                                )?.compress(Bitmap.CompressFormat.PNG, 100, os)
+                                os.flush()
+                                os.close()
+                            }.subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .doOnSubscribe {
+                                    rlProgress.visibility = View.VISIBLE
+                                }
+                                .doFinally {
+                                    rlProgress.visibility = View.GONE
+                                }
+                                .subscribe({
+                                    tvSuccess.visibility = View.VISIBLE
+                                    Handler().postDelayed({
+                                        tvSuccess?.visibility = View.GONE
+                                        mCamera?.startPreview()
+                                    }, 3000)
+                                }) {
+                                    tvError.visibility = View.VISIBLE
+                                    Handler().postDelayed({
+                                        tvError?.visibility = View.GONE
+                                        mCamera?.startPreview()
+                                    }, 3000)
+                                }
+                        })
+                } catch (e: Exception) {
+
+                }
+            }, 3000)
+        }, 1000)
         viewTreeObserver.addOnGlobalLayoutListener {
             instances.add(this)
         }
         imgClose.setOnClickListener {
-            mCamera?.release()
             context.sendBroadcast(Intent(Broadcast.ACTION_COMPLETED))
         }
     }
@@ -111,7 +113,6 @@ class CameraView(context: Context) : LinearLayout(context) {
         return try {
             Camera.open(1)// attempt to get a Camera instance
         } catch (e: Exception) {
-            Log.i("tag11", e.message)
             // Camera is not available (in use or does not exist)
             null // returns null if camera is unavailable
         }

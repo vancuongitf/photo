@@ -132,21 +132,6 @@ class MyService : Service() {
         }
     }
 
-    fun startApplication(application_name: String) {
-        try {
-            val intent = Intent("android.intent.action.MAIN")
-            intent.addCategory("android.intent.category.LAUNCHER")
-            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
-            val resolveinfo_list: List<ResolveInfo> =
-                getPackageManager().queryIntentActivities(intent, 0)
-            for (info in resolveinfo_list) {
-                Log.i("tag11", info.activityInfo.packageName + "---" + info.activityInfo.name)
-            }
-        } catch (e: ActivityNotFoundException) {
-
-        }
-    }
-
     private fun launchComponent(packageName: String, name: String) {
         val launch_intent = Intent("android.intent.action.MAIN")
         launch_intent.addCategory("android.intent.category.LAUNCHER")

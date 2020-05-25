@@ -7,7 +7,6 @@ import android.graphics.PixelFormat
 import android.os.Build
 import android.os.SystemClock
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -62,20 +61,7 @@ class Broadcast : BroadcastReceiver() {
                 }
             }
 
-            Intent.ACTION_SCREEN_OFF -> {
-                (context as? TestActivity)?.let {
-                    it.startActivity(Intent(it, MainActivity::class.java).apply {
-                        addFlags(
-                            Intent.FLAG_ACTIVITY_CLEAR_TASK
-                                    or Intent.FLAG_ACTIVITY_CLEAR_TOP
-                                    or Intent.FLAG_ACTIVITY_NEW_TASK
-                        )
-                    })
-                }
-            }
-
             Intent.ACTION_BOOT_COMPLETED, "android.intent.action.QUICKBOOT_POWERON" -> {
-                Log.i("tag11", "ACTION_BOOT_COMPLETED")
                 context?.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
                     ?.edit()?.putLong("bootx", Calendar.getInstance().timeInMillis)?.apply()
                 App.getInstance().bootime = Calendar.getInstance().timeInMillis

@@ -8,17 +8,16 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.WindowManager
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
-    private val myBroadcastReceiver = Broadcast()
     private var devicePolicyManager: DevicePolicyManager? = null
     private var activityManager: ActivityManager? = null
     private var compName: ComponentName? = null
@@ -27,7 +26,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        Log.i("tag11", getExternalFilesDir("image")?.absolutePath ?: "xxx")
         App.getInstance().contextDecor = window.decorView.context
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
@@ -47,18 +45,6 @@ class MainActivity : AppCompatActivity() {
         devicePolicyManager = getSystemService(DEVICE_POLICY_SERVICE) as? DevicePolicyManager
         activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
         compName = ComponentName(this, MyAdmin::class.java)
-
-//        if (devicePolicyManager?.isAdminActive(compName!!) == true) {
-//            startService(Intent(this, MyService::class.java))
-//        } else {
-//            val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
-//            intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, compName)
-//            intent.putExtra(
-//                DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-//                "Additional text explaining why we need this permission"
-//            )
-//            startActivityForResult(intent, 11)
-//        }
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
@@ -84,7 +70,10 @@ class MainActivity : AppCompatActivity() {
                 startService(intent)
             }
         } else {
-            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION)
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:${applicationContext.packageName}")
+            )
             startActivity(intent)
         }
     }
