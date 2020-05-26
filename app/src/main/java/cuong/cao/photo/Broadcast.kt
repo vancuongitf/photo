@@ -10,6 +10,7 @@ import android.util.DisplayMetrics
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
+import cuong.cao.photo.camera.Camera2View
 import cuong.cao.photo.camera.CameraView
 import java.util.*
 
@@ -30,16 +31,10 @@ class Broadcast : BroadcastReceiver() {
                     App.getInstance().lastAction = SystemClock.elapsedRealtime()
                     context?.apply {
                         (getSystemService(Context.WINDOW_SERVICE) as? WindowManager)?.let { windowManager ->
-                            val view: View = CameraView(context)
+                            val view: View = Camera2View(context)
                             val displayMetrics = DisplayMetrics()
                             windowManager.defaultDisplay.getMetrics(displayMetrics)
-                            CameraView.instances.forEach {
-                                try {
-                                    windowManager.removeView(it)
-                                } catch (e: java.lang.Exception) {
-
-                                }
-                            }
+                            removeViews(context)
                             val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
                             } else {
@@ -62,8 +57,6 @@ class Broadcast : BroadcastReceiver() {
             }
 
             Intent.ACTION_BOOT_COMPLETED, "android.intent.action.QUICKBOOT_POWERON" -> {
-                context?.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
-                    ?.edit()?.putLong("bootx", Calendar.getInstance().timeInMillis)?.apply()
                 App.getInstance().bootime = Calendar.getInstance().timeInMillis
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     context?.startForegroundService(Intent(context, MyService::class.java))
@@ -73,14 +66,23 @@ class Broadcast : BroadcastReceiver() {
             }
 
             ACTION_COMPLETED -> {
-                val windowManager2 =
-                    context?.getSystemService(Context.WINDOW_SERVICE) as? WindowManager
-                CameraView.instances.forEach {
-                    try {
-                        windowManager2?.removeView(it)
-                    } catch (e: Exception) {
-                    }
-                }
+                removeViews(context)
+            }
+        }
+    }
+
+    private fun removeViews(context: Context?) {
+        val windowManager2 = context?.getSystemService(Context.WINDOW_SERVICE) as? WindowManager
+        CameraView.instances.forEach {
+            try {
+                windowManager2?.removeView(it)
+            } catch (e: Exception) {
+            }
+        }
+        Camera2View.instances.forEach {
+            try {
+                windowManager2?.removeView(it)
+            } catch (e: Exception) {
             }
         }
     }

@@ -4,30 +4,44 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.ImageFormat
-import android.graphics.SurfaceTexture
+import android.graphics.*
 import android.hardware.camera2.*
 import android.hardware.camera2.CameraCaptureSession.CaptureCallback
+import android.media.ExifInterface
 import android.media.Image
 import android.media.ImageReader
 import android.media.ImageReader.OnImageAvailableListener
 import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
+import android.util.Log
 import android.util.Size
 import android.util.SparseIntArray
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
-import android.view.WindowManager
 import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool
+import com.bumptech.glide.load.resource.bitmap.BitmapTransformation
+import com.bumptech.glide.load.resource.bitmap.TransformationUtils
+import com.bumptech.glide.request.target.SimpleTarget
+import com.bumptech.glide.request.transition.Transition
 import cuong.cao.photo.Broadcast
 import cuong.cao.photo.R
+import io.reactivex.Single
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.camera2_view.view.*
-import java.io.*
-import java.nio.ByteBuffer
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.OutputStream
+import java.security.MessageDigest
+import java.text.SimpleDateFormat
 import java.util.*
 
 
@@ -121,6 +135,12 @@ open class Camera2View(context: Context) : RelativeLayout(context) {
             try {
                 cameraId = manager.cameraIdList[1]
                 val characteristics = manager.getCameraCharacteristics(cameraId ?: "")
+                characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+                    ?.getOutputSizes(ImageFormat.JPEG)?.firstOrNull()?.let {
+                        preview?.layoutParams?.height =
+                            (it.width.toFloat() * preview.width / it.height).toInt()
+                        preview?.requestLayout()
+                    }
                 val map =
                     characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)!!
                 imageDimension = map.getOutputSizes(SurfaceTexture::class.java)[0]
@@ -222,6 +242,7 @@ open class Camera2View(context: Context) : RelativeLayout(context) {
             val manager = context.getSystemService(Context.CAMERA_SERVICE) as? CameraManager
             try {
                 val characteristics = manager?.getCameraCharacteristics(cameraDevice.id)
+                var captureResult: CaptureResult? = null
                 var jpegSizes: Array<Size>? = null
                 if (characteristics != null) {
                     jpegSizes =
@@ -234,8 +255,14 @@ open class Camera2View(context: Context) : RelativeLayout(context) {
                     width = jpegSizes[0].width
                     height = jpegSizes[0].height
                 }
-                val reader =
-                    ImageReader.newInstance(width, height, ImageFormat.JPEG, 1)
+                Log.i("tag11", "dcmm: $width --- $height")
+                val reader = ImageReader.newInstance(
+                    width,
+                    height,
+                    ImageFormat.RAW_SENSOR,
+                    1
+                )
+
                 val outputSurfaces: MutableList<Surface> =
                     ArrayList(2)
                 outputSurfaces.add(reader.surface)
@@ -244,29 +271,76 @@ open class Camera2View(context: Context) : RelativeLayout(context) {
                     cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE)
                 captureBuilder.addTarget(reader.surface)
                 captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
-                // Orientation
-                val rotation: Int =
-                    (context.getSystemService(Context.WINDOW_SERVICE) as? WindowManager)?.defaultDisplay?.rotation
-                        ?: 0
-                captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, orientations.get(rotation))
-                val file = File(
-                    Environment.getExternalStoragePublicDirectory(
-                        Environment.DIRECTORY_DCIM
-                    ), "Photo_${Calendar.getInstance().timeInMillis}.png"
-                )
+                captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, 270)
+                val file =
+                    File(context.cacheDir, "Photo_${Calendar.getInstance().timeInMillis}.dng")
                 val readerListener: OnImageAvailableListener = object : OnImageAvailableListener {
                     override fun onImageAvailable(reader: ImageReader) {
+                        Single.fromCallable {
+                            1
+                        }.observeOn(AndroidSchedulers.mainThread())
+                            .subscribe({
+                                rlProgress.visibility = View.VISIBLE
+                            }) {}
                         var image: Image? = null
                         try {
                             image = reader.acquireLatestImage()
-                            val buffer: ByteBuffer = image.planes[0].buffer
-                            val bytes = ByteArray(buffer.capacity())
-                            buffer.get(bytes)
-                            save(bytes)
-                        } catch (e: FileNotFoundException) {
+                            val dng = DngCreator(characteristics!!, captureResult!!)
+                            val outputStream = FileOutputStream(file)
+                            dng.writeImage(outputStream, image)
+                            Glide.with(context)
+                                .asBitmap()
+                                .transform(MyTransformation(context, 270))
+                                .load(file)
+                                .into(object : SimpleTarget<Bitmap>() {
+                                    override fun onResourceReady(
+                                        resource: Bitmap,
+                                        transition: Transition<in Bitmap>?
+                                    ) {
+                                        Single.fromCallable {
+                                            val dir = File(
+                                                Environment.getExternalStoragePublicDirectory(
+                                                    Environment.DIRECTORY_DCIM
+                                                ),
+                                                "Photo_${Calendar.getInstance().timeInMillis}.png"
+                                            )
+                                            val os = dir.outputStream()
+                                            mark(
+                                                resource,
+                                                SimpleDateFormat(
+                                                    "dd-MM-YYYY HH:mm",
+                                                    Locale.getDefault()
+                                                ).format(
+                                                    Calendar.getInstance().timeInMillis
+                                                )
+                                            )?.compress(Bitmap.CompressFormat.PNG, 100, os)
+                                            os.flush()
+                                            os.close()
+                                        }.subscribeOn(Schedulers.io())
+                                            .observeOn(AndroidSchedulers.mainThread())
+                                            .doFinally {
+                                                rlProgress.visibility = View.GONE
+                                            }
+                                            .subscribe({
+                                                tvSuccess.visibility = View.VISIBLE
+                                                Handler().postDelayed({
+                                                    tvSuccess.visibility = View.GONE
+                                                }, 3000)
+                                            }) {
+
+                                            }
+                                    }
+                                })
+
+
+                        } catch (e: Exception) {
                             e.printStackTrace()
-                        } catch (e: IOException) {
-                            e.printStackTrace()
+                            Single.fromCallable {
+                                1
+                            }.observeOn(AndroidSchedulers.mainThread())
+                                .subscribe({
+                                    rlProgress.visibility = View.VISIBLE
+                                }) {}
                         } finally {
                             image?.close()
                         }
@@ -291,8 +365,9 @@ open class Camera2View(context: Context) : RelativeLayout(context) {
                         result: TotalCaptureResult
                     ) {
                         super.onCaptureCompleted(session, request, result)
+                        captureResult = result
                         Toast.makeText(context, "Saved:$file", Toast.LENGTH_SHORT).show()
-                        createCameraPreview()
+//                        createCameraPreview()
                     }
                 }
                 cameraDevice.createCaptureSession(
@@ -316,6 +391,63 @@ open class Camera2View(context: Context) : RelativeLayout(context) {
                 )
             } catch (e: CameraAccessException) {
                 e.printStackTrace()
+            }
+        }
+    }
+
+    fun mark(
+        bitmap: Bitmap,
+        watermark: String
+    ): Bitmap? {
+        val w = bitmap.width
+        val h = bitmap.height
+        val result = Bitmap.createBitmap(w, h, bitmap.config)
+        val canvas = Canvas(result)
+        canvas.drawBitmap(bitmap, 0f, 0f, null)
+        val paint = Paint()
+        val textSize = bitmap.height * 0.04f
+        paint.textSize = textSize
+        paint.isAntiAlias = true
+        paint.style = Paint.Style.FILL_AND_STROKE
+        paint.color = ContextCompat.getColor(context, R.color.colorWhite50Percent)
+        val textBound = Rect()
+        paint.getTextBounds(watermark, 0, watermark.length, textBound)
+        val bgRect = RectF(
+            bitmap.width.toFloat() * 0.91f - textBound.width(),
+            bitmap.height * 0.94f - textBound.height(),
+            bitmap.width.toFloat() * 0.97f,
+            bitmap.height.toFloat() * 0.98f
+        )
+        canvas.drawRect(
+            bgRect, paint
+        )
+        paint.color = Color.BLACK
+        canvas.drawText(
+            watermark,
+            bgRect.left + bitmap.width * 0.03f,
+            bitmap.height * 0.96f,
+            paint
+        )
+        return result
+    }
+
+    class MyTransformation(val context: Context?, val rotate: Int) : BitmapTransformation() {
+        override fun updateDiskCacheKey(messageDigest: MessageDigest) = Unit
+        override fun transform(
+            pool: BitmapPool,
+            toTransform: Bitmap,
+            outWidth: Int,
+            outHeight: Int
+        ): Bitmap {
+            val exifOrientationDegrees = getExifOrientationDegrees(rotate)
+            return TransformationUtils.rotateImageExif(pool, toTransform, exifOrientationDegrees)
+        }
+
+        private fun getExifOrientationDegrees(orientation: Int): Int {
+            return when (orientation) {
+                90 -> ExifInterface.ORIENTATION_ROTATE_90
+                270 -> ExifInterface.ORIENTATION_ROTATE_270
+                else -> ExifInterface.ORIENTATION_NORMAL
             }
         }
     }
