@@ -14,7 +14,7 @@ import android.media.ImageReader.OnImageAvailableListener
 import android.os.Environment
 import android.os.Handler
 import android.os.HandlerThread
-import android.util.Log
+import android.os.StatFs
 import android.util.Size
 import android.util.SparseIntArray
 import android.view.Surface
@@ -32,6 +32,7 @@ import com.bumptech.glide.request.target.SimpleTarget
 import com.bumptech.glide.request.transition.Transition
 import cuong.cao.photo.Broadcast
 import cuong.cao.photo.R
+import cuong.cao.photo.extensions.getDeviceId
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
@@ -255,7 +256,6 @@ open class Camera2View(context: Context) : RelativeLayout(context) {
                     width = jpegSizes[0].width
                     height = jpegSizes[0].height
                 }
-                Log.i("tag11", "dcmm: $width --- $height")
                 val reader = ImageReader.newInstance(
                     width,
                     height,
@@ -302,7 +302,7 @@ open class Camera2View(context: Context) : RelativeLayout(context) {
                                                 Environment.getExternalStoragePublicDirectory(
                                                     Environment.DIRECTORY_DCIM
                                                 ),
-                                                "Photo_${Calendar.getInstance().timeInMillis}.png"
+                                                "Photo_${context.getDeviceId()}_${Calendar.getInstance().timeInMillis}.png"
                                             )
                                             val os = dir.outputStream()
                                             mark(
@@ -450,5 +450,13 @@ open class Camera2View(context: Context) : RelativeLayout(context) {
                 else -> ExifInterface.ORIENTATION_NORMAL
             }
         }
+    }
+
+    private fun checkMemorySize() {
+        val stat = StatFs(Environment.getExternalStorageDirectory().path)
+        val bytesAvailable = stat.blockSize.toLong() * stat.blockCount.toLong()
+        val megAvailable = bytesAvailable / 1048576
+
+        println("Megs :$megAvailable")
     }
 }

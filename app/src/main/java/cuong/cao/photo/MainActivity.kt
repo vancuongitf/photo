@@ -1,28 +1,29 @@
 package cuong.cao.photo
 
 import android.Manifest
-import android.app.ActivityManager
+import android.annotation.SuppressLint
 import android.app.KeyguardManager
-import android.app.admin.DevicePolicyManager
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.os.StatFs
 import android.provider.Settings
+import android.telephony.TelephonyManager
+import android.util.Log
 import android.view.WindowManager
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import cuong.cao.photo.extensions.getDeviceId
+import kotlinx.android.synthetic.main.activity_main.*
+import java.net.NetworkInterface
+import java.util.*
+
 
 class MainActivity : AppCompatActivity() {
 
-    private var devicePolicyManager: DevicePolicyManager? = null
-    private var activityManager: ActivityManager? = null
-    private var compName: ComponentName? = null
-
-    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -42,30 +43,28 @@ class MainActivity : AppCompatActivity() {
                         WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
             )
         }
-        devicePolicyManager = getSystemService(DEVICE_POLICY_SERVICE) as? DevicePolicyManager
-        activityManager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
-        compName = ComponentName(this, MyAdmin::class.java)
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
     override fun onResume() {
         super.onResume()
         if (Settings.canDrawOverlays(this)) {
-            if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(
-                    Manifest.permission.WRITE_EXTERNAL_STORAGE
-                ) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.WAKE_LOCK) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(
-                    Manifest.permission.RECEIVE_BOOT_COMPLETED
-                ) != PackageManager.PERMISSION_GRANTED
+            if (!isPermissionGranted(Manifest.permission.CAMERA)
+                || !isPermissionGranted(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                || !isPermissionGranted(Manifest.permission.RECEIVE_BOOT_COMPLETED)
+                || !isPermissionGranted(Manifest.permission.WAKE_LOCK)
+                || !isPermissionGranted(Manifest.permission.READ_PHONE_STATE)
             ) {
                 requestPermissions(
                     arrayOf(
                         Manifest.permission.CAMERA,
                         Manifest.permission.WRITE_EXTERNAL_STORAGE,
                         Manifest.permission.WAKE_LOCK,
-                        Manifest.permission.RECEIVE_BOOT_COMPLETED
+                        Manifest.permission.RECEIVE_BOOT_COMPLETED,
+                        Manifest.permission.READ_PHONE_STATE
                     ), 1111
                 )
             } else {
+                tvClick.text = "Device Id: ${getDeviceId()}"
                 val intent = Intent(this, MyService::class.java)
                 startService(intent)
             }
@@ -77,4 +76,14 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
     }
+
+    private fun checkMemorySize() {
+        val stat = StatFs(Environment.getExternalStorageDirectory().path)
+        val bytesAvailable = stat.blockSizeLong * stat.availableBlocksLong
+        val megAvailable = bytesAvailable / 1048576 / 1024f
+        Log.i("tag11", "Size: $megAvailable")
+    }
+
+    private fun isPermissionGranted(permission: String) =
+        checkSelfPermission(permission) != PackageManager.PERMISSION_DENIED
 }
