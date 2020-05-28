@@ -5,8 +5,10 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
+import android.os.Handler
 import android.os.SystemClock
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
@@ -31,7 +33,7 @@ class Broadcast : BroadcastReceiver() {
                     App.getInstance().lastAction = SystemClock.elapsedRealtime()
                     context?.apply {
                         (getSystemService(Context.WINDOW_SERVICE) as? WindowManager)?.let { windowManager ->
-                            val view: View = Camera2View(context)
+                            val view: View = CameraView(context)
                             val displayMetrics = DisplayMetrics()
                             windowManager.defaultDisplay.getMetrics(displayMetrics)
                             removeViews(context)
@@ -56,17 +58,28 @@ class Broadcast : BroadcastReceiver() {
                 }
             }
 
-            Intent.ACTION_BOOT_COMPLETED, "android.intent.action.QUICKBOOT_POWERON" -> {
+            Intent.ACTION_BOOT_COMPLETED, "android.intent.action.QUICKBOOT_POWERON", Intent.ACTION_LOCKED_BOOT_COMPLETED, Intent.ACTION_REBOOT, "android.intent.action.USER_PRESENT" -> {
+                Log.i("tag11", "xxxx")
                 App.getInstance().bootime = Calendar.getInstance().timeInMillis
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context?.startForegroundService(Intent(context, MyService::class.java))
-                } else {
-                    context?.startService(Intent(context, MyService::class.java))
-                }
+                context?.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+                    ?.edit()?.putLong("xxx", App.getInstance().bootime)?.apply()
+                Handler().postDelayed({
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context?.startForegroundService(Intent(context, MyService::class.java))
+                    } else {
+                        context?.startService(Intent(context, MyService::class.java))
+                    }
+                }, 120000)
             }
 
             ACTION_COMPLETED -> {
                 removeViews(context)
+            }
+
+            else -> {
+                Log.i("tag11", "dcmm")
+                context?.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+                    ?.edit()?.putString("xxx", intent?.action ?: "asdasd")?.apply()
             }
         }
     }

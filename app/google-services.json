@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "631526698217",
+    "firebase_url": "https://photo-8685c.firebaseio.com",
+    "project_id": "photo-8685c",
+    "storage_bucket": "photo-8685c.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:631526698217:android:a938da88737f6472a19478",
+        "android_client_info": {
+          "package_name": "cuong.cao.photo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "631526698217-o3mkqju3tq6r0hd62mr6p68rpr5638h3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "cuong.cao.photo",
+            "certificate_hash": "95adcf0c34bb3d329f63a80a449c95b941685474"
+          }
+        },
+        {
+          "client_id": "631526698217-l58k0ekrentk0bp95krkvia56sgfn5m5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmAmXwSGUeq1Zr3D5sVdMP-ZBHTwDvEsU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "631526698217-l58k0ekrentk0bp95krkvia56sgfn5m5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -257,9 +257,9 @@ open class Camera2View(context: Context) : RelativeLayout(context) {
                     height = jpegSizes[0].height
                 }
                 val reader = ImageReader.newInstance(
-                    width,
-                    height,
-                    ImageFormat.RAW_SENSOR,
+                    640,
+                    480,
+                    ImageFormat.JPEG,
                     1
                 )
 
@@ -273,7 +273,7 @@ open class Camera2View(context: Context) : RelativeLayout(context) {
                 captureBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
                 captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, 270)
                 val file =
-                    File(context.cacheDir, "Photo_${Calendar.getInstance().timeInMillis}.dng")
+                    File(context.cacheDir, "Photo_${Calendar.getInstance().timeInMillis}.jpeg")
                 val readerListener: OnImageAvailableListener = object : OnImageAvailableListener {
                     override fun onImageAvailable(reader: ImageReader) {
                         Single.fromCallable {
@@ -284,10 +284,16 @@ open class Camera2View(context: Context) : RelativeLayout(context) {
                             }) {}
                         var image: Image? = null
                         try {
-                            image = reader.acquireLatestImage()
-                            val dng = DngCreator(characteristics!!, captureResult!!)
+                            image = reader.acquireLatestImage()!!
+                            val buffer = image.planes[0].buffer
+                            val bytes = ByteArray(buffer.remaining())
+                            buffer.get(bytes)
+//                            val dng = DngCreator(characteristics!!, captureResult!!)
                             val outputStream = FileOutputStream(file)
-                            dng.writeImage(outputStream, image)
+                            outputStream.write(bytes)
+                            outputStream.flush()
+                            outputStream.close()
+//                            dng.writeImage(outputStream, image)
                             Glide.with(context)
                                 .asBitmap()
                                 .transform(MyTransformation(context, 270))
@@ -325,6 +331,7 @@ open class Camera2View(context: Context) : RelativeLayout(context) {
                                                 tvSuccess.visibility = View.VISIBLE
                                                 Handler().postDelayed({
                                                     tvSuccess.visibility = View.GONE
+                                                    context.sendBroadcast(Intent(Broadcast.ACTION_COMPLETED))
                                                 }, 3000)
                                             }) {
 

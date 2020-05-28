@@ -1,7 +1,7 @@
 package cuong.cao.photo
 
 import android.Manifest
-import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
@@ -12,14 +12,12 @@ import android.os.Bundle
 import android.os.Environment
 import android.os.StatFs
 import android.provider.Settings
-import android.telephony.TelephonyManager
 import android.util.Log
+import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import cuong.cao.photo.extensions.getDeviceId
 import kotlinx.android.synthetic.main.activity_main.*
-import java.net.NetworkInterface
-import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -27,7 +25,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        App.getInstance().contextDecor = window.decorView.context
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
@@ -43,6 +40,17 @@ class MainActivity : AppCompatActivity() {
                         WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
             )
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        val activityManager = applicationContext
+            .getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        activityManager.moveTaskToFront(taskId, 0)
+    }
+
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        return false
     }
 
     override fun onResume() {

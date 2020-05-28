@@ -21,6 +21,7 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
@@ -29,29 +30,16 @@
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <receiver
-            android:name=".Broadcast"
+            android:name=".BootCompleteBroadCast"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name=".MyAdmin"
-            android:permission="android.permission.BIND_DEVICE_ADMIN">
-            <meta-data
-                android:name="android.app.device_admin"
-                android:resource="@xml/policies" />
-            <intent-filter>
-                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
-
+                <action android:name="android.intent.action.BOOT_COMPLETED"></action>
             </intent-filter>
         </receiver>
 

@@ -35,8 +35,11 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxjava:2.2.8'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
 
+    // Firebase
+    implementation 'com.google.firebase:firebase-database:19.3.0'
 
     //glide
     implementation 'com.github.bumptech.glide:glide:4.10.0'
     implementation 'androidx.exifinterface:exifinterface:1.1.0-beta01'
 }
+apply plugin: 'com.google.gms.google-services'

@@ -109,8 +109,7 @@ class MyService : Service() {
             0, notificationIntent, 0
         )
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Foreground Service")
-            .setContentText("abcd")
+            .setContentTitle("Photo Service")
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentIntent(pendingIntent)
             .build()
