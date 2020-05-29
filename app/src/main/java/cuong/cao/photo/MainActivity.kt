@@ -1,30 +1,34 @@
 package cuong.cao.photo
 
 import android.Manifest
-import android.app.ActivityManager
 import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.os.StatFs
 import android.provider.Settings
-import android.util.Log
-import android.view.KeyEvent
+import android.view.View
 import android.view.WindowManager
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import cuong.cao.photo.extensions.getDeviceId
 import kotlinx.android.synthetic.main.activity_main.*
 
-
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var sharedPreferences: SharedPreferences
+    private var registed: Boolean = false
+    private var deviceId = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        sharedPreferences = getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
+        registed = sharedPreferences.getBoolean("TOKEN", false)
+        deviceId = getDeviceId()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
@@ -40,17 +44,19 @@ class MainActivity : AppCompatActivity() {
                         WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
             )
         }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        val activityManager = applicationContext
-            .getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        activityManager.moveTaskToFront(taskId, 0)
-    }
-
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        return false
+        btnRegister.setOnClickListener {
+            registed = genKey(deviceId) == edtKey.text.toString()
+            if (registed) {
+                sharedPreferences.edit().putBoolean("TOKEN", registed).apply()
+                onResume()
+            } else {
+                Toast.makeText(this, "Register fail.", Toast.LENGTH_LONG).show()
+            }
+        }
+        imgMenu.setOnClickListener {
+            val intent = Intent(this, SettingActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     override fun onResume() {
@@ -72,9 +78,18 @@ class MainActivity : AppCompatActivity() {
                     ), 1111
                 )
             } else {
-                tvClick.text = "Device Id: ${getDeviceId()}"
-                val intent = Intent(this, MyService::class.java)
-                startService(intent)
+                if (registed) {
+                    edtKey.visibility = View.GONE
+                    btnRegister.visibility = View.GONE
+                } else {
+                    edtKey.visibility = View.VISIBLE
+                    btnRegister.visibility = View.VISIBLE
+                }
+                tvDeviceId.text = "Device Id: $deviceId"
+                if (registed) {
+                    val intent = Intent(this, MyService::class.java)
+                    startService(intent)
+                }
             }
         } else {
             val intent = Intent(
@@ -85,13 +100,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkMemorySize() {
-        val stat = StatFs(Environment.getExternalStorageDirectory().path)
-        val bytesAvailable = stat.blockSizeLong * stat.availableBlocksLong
-        val megAvailable = bytesAvailable / 1048576 / 1024f
-        Log.i("tag11", "Size: $megAvailable")
-    }
-
     private fun isPermissionGranted(permission: String) =
         checkSelfPermission(permission) != PackageManager.PERMISSION_DENIED
+
+    private fun genKey(id: String): String {
+        val key = CharArray(5)
+        val nums = mutableListOf<Int>()
+        id.toCharArray().forEach {
+            nums.add(it.toString().toInt())
+        }
+        val t1 = nums.sum()
+        val t2 = nums[0] + nums[1] + nums[2] + nums[3]
+        val t3 = (nums[2] + nums[3] + nums[4]) % 10
+        val formatter = "%02d"
+        formatter.format(t1).toCharArray().let {
+            key[0] = it.first()
+            key[4] = it.last()
+        }
+        formatter.format(t2).let {
+            key[1] = it.first()
+            key[3] = it.last()
+        }
+        key[2] = t3.toString().toCharArray().first()
+        return String(key)
+    }
 }

@@ -57,7 +57,6 @@ class CameraView(context: Context) : LinearLayout(context) {
                         null,
                         null,
                         { p0, _ ->
-                            Log.i("tag11", "dcmm")
                             mCamera?.release()
                             thread {
                                 val dir = File(
@@ -100,7 +99,6 @@ class CameraView(context: Context) : LinearLayout(context) {
 //                                }
                         })
                 } catch (e: Exception) {
-                    Log.i("tag11", "dcmm: " + e.message)
                 }
             }, 3000)
         }, 1000)

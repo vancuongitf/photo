@@ -8,11 +8,11 @@ import android.os.Build
 import android.os.Handler
 import android.os.SystemClock
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.WindowManager
 import cuong.cao.photo.camera.Camera2View
+import cuong.cao.photo.camera.CameraActivity
 import cuong.cao.photo.camera.CameraView
 import java.util.*
 
@@ -29,6 +29,13 @@ class Broadcast : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         when (intent?.action) {
             Intent.ACTION_SCREEN_ON, ACTION_VOLUME_PRESSED -> {
+
+
+                val intent = Intent(context, CameraActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT or Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context?.startActivity(intent)
+                return
                 if (SystemClock.elapsedRealtime() - App.getInstance().lastAction > 10000 && Calendar.getInstance().timeInMillis - 120000 > App.getInstance().bootime) {
                     App.getInstance().lastAction = SystemClock.elapsedRealtime()
                     context?.apply {
@@ -59,7 +66,6 @@ class Broadcast : BroadcastReceiver() {
             }
 
             Intent.ACTION_BOOT_COMPLETED, "android.intent.action.QUICKBOOT_POWERON", Intent.ACTION_LOCKED_BOOT_COMPLETED, Intent.ACTION_REBOOT, "android.intent.action.USER_PRESENT" -> {
-                Log.i("tag11", "xxxx")
                 App.getInstance().bootime = Calendar.getInstance().timeInMillis
                 context?.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
                     ?.edit()?.putLong("xxx", App.getInstance().bootime)?.apply()
@@ -77,7 +83,6 @@ class Broadcast : BroadcastReceiver() {
             }
 
             else -> {
-                Log.i("tag11", "dcmm")
                 context?.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
                     ?.edit()?.putString("xxx", intent?.action ?: "asdasd")?.apply()
             }

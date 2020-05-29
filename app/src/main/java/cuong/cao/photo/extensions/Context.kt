@@ -14,18 +14,25 @@ import java.util.*
 
 @SuppressLint("MissingPermission")
 internal fun Context.getDeviceId(): String {
+    var id: String = ""
     val telephonyManager =
         getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
     if (telephonyManager != null) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return telephonyManager.deviceId
+            id = telephonyManager.deviceId
         } else {
             if (telephonyManager.imei != null) {
-                return telephonyManager.imei
+                id = telephonyManager.imei
             }
         }
     }
-    return getMacAdd().toUpperCase(Locale.getDefault())
+    if (id.isEmpty()) {
+        id = getMacAdd().toUpperCase(Locale.getDefault())
+    }
+    if (id.length > 5) {
+        id = id.substring(id.length - 5)
+    }
+    return id
 }
 
 private fun getMacAdd(): String {

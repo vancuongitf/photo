@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import java.util.*
 
 /**
@@ -13,7 +12,6 @@ import java.util.*
 class BootCompleteBroadCast : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        Log.i("tag11", "xxxx")
         App.getInstance().bootime = Calendar.getInstance().timeInMillis
         context?.getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
             ?.edit()?.putLong("xxx", App.getInstance().bootime)?.apply()
