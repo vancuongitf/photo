@@ -29,18 +29,18 @@ class Broadcast : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         when (intent?.action) {
             Intent.ACTION_SCREEN_ON, ACTION_VOLUME_PRESSED -> {
-
-
                 val intent = Intent(context, CameraActivity::class.java).apply {
                     addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT or Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 context?.startActivity(intent)
+
+                // TODO: Code dung cho may moi.
                 return
                 if (SystemClock.elapsedRealtime() - App.getInstance().lastAction > 10000 && Calendar.getInstance().timeInMillis - 120000 > App.getInstance().bootime) {
                     App.getInstance().lastAction = SystemClock.elapsedRealtime()
                     context?.apply {
                         (getSystemService(Context.WINDOW_SERVICE) as? WindowManager)?.let { windowManager ->
-                            val view: View = CameraView(context)
+                            val view: View = Camera2View(context)
                             val displayMetrics = DisplayMetrics()
                             windowManager.defaultDisplay.getMetrics(displayMetrics)
                             removeViews(context)

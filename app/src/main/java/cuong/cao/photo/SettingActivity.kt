@@ -10,7 +10,6 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_setting.*
 
-
 /**
  * Created by at-cuongcao on 28/05/2020.
  */

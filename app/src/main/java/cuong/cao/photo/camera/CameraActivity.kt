@@ -62,10 +62,16 @@ class CameraActivity : AppCompatActivity() {
             parameters?.setPictureSize(it.width, it.height)
         }
         parameters?.pictureSize?.let {
-            preview?.layoutParams?.height =
+            transparent?.layoutParams?.height =
                 (it.width * resources.displayMetrics.widthPixels.toFloat() / it.height).toInt()
-            preview?.requestLayout()
+            transparent?.requestLayout()
+            // TODO: bat flash truoc
             parameters.flashMode = Camera.Parameters.FLASH_MODE_TORCH
+
+            //TODO: bat flash sau
+
+
+
             mCamera?.parameters = parameters
         }
         mPreview = mCamera?.let {

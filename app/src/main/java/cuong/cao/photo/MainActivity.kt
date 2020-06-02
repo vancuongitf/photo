@@ -28,7 +28,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         sharedPreferences = getSharedPreferences(BuildConfig.APPLICATION_ID, Context.MODE_PRIVATE)
         registed = sharedPreferences.getBoolean("TOKEN", false)
-        deviceId = getDeviceId()
+        if (isPermissionGranted(Manifest.permission.READ_PHONE_STATE)) {
+            deviceId = getDeviceId()
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
@@ -78,6 +80,7 @@ class MainActivity : AppCompatActivity() {
                     ), 1111
                 )
             } else {
+                deviceId = getDeviceId()
                 if (registed) {
                     edtKey.visibility = View.GONE
                     btnRegister.visibility = View.GONE
