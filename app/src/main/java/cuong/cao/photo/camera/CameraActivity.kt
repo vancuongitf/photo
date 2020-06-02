@@ -65,6 +65,7 @@ class CameraActivity : AppCompatActivity() {
             preview?.layoutParams?.height =
                 (it.width * resources.displayMetrics.widthPixels.toFloat() / it.height).toInt()
             preview?.requestLayout()
+            parameters.flashMode = Camera.Parameters.FLASH_MODE_TORCH
             mCamera?.parameters = parameters
         }
         mPreview = mCamera?.let {
