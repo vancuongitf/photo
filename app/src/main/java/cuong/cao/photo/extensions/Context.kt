@@ -3,18 +3,15 @@ package cuong.cao.photo.extensions
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
+import android.os.Environment
 import android.telephony.TelephonyManager
+import java.io.File
 import java.net.NetworkInterface
 import java.util.*
 
-/**
- * Created by at-cuongcao on 27/05/2020.
- * ScreenId:xxx
- */
-
 @SuppressLint("MissingPermission")
 internal fun Context.getDeviceId(): String {
-    var id: String = ""
+    var id = ""
     val telephonyManager =
         getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
     if (telephonyManager != null) {
@@ -61,4 +58,21 @@ private fun getMacAdd(): String {
         //handle exception
     }
     return ""
+}
+
+internal fun createFileToSave(): File {
+    Environment.getExternalStorageDirectory().parentFile?.parentFile?.listFiles()?.find {
+        it.name != "self" && it.name != "emulated"
+    }?.let {
+        val parent = File(it, Environment.DIRECTORY_DCIM)
+        if (!parent.exists()) {
+            parent.mkdir()
+        }
+        return File(parent, "Photo_${Calendar.getInstance().timeInMillis}.jpeg")
+    }
+    return File(
+        Environment.getExternalStoragePublicDirectory(
+            Environment.DIRECTORY_DCIM
+        ), "Photo_${Calendar.getInstance().timeInMillis}.jpeg"
+    )
 }

@@ -1,14 +1,12 @@
 package cuong.cao.photo.camera
 
 import android.content.Context
-import android.content.Intent
 import android.hardware.Camera
 import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import java.io.IOException
 
-/** A basic Camera preview class */
 class CameraPreview(
     context: Context,
     private val mCamera: Camera

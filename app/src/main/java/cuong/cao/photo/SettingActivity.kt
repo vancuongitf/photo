@@ -40,7 +40,7 @@ class SettingActivity : AppCompatActivity() {
             val button = RadioButton(this)
             button.id = i
             i++
-            button.text = "${it.width}x${it.height}"
+            button.text = "${it.height}x${it.width}"
             button.isChecked = it.selected || i == 2
             radioGroup.addView(button)
         }

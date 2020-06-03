@@ -6,7 +6,6 @@ import android.content.SharedPreferences
 import android.graphics.*
 import android.hardware.Camera
 import android.os.Bundle
-import android.os.Environment
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -15,22 +14,17 @@ import com.google.gson.reflect.TypeToken
 import cuong.cao.photo.BuildConfig
 import cuong.cao.photo.ImageSize
 import cuong.cao.photo.R
-import cuong.cao.photo.extensions.getDeviceId
+import cuong.cao.photo.extensions.createFileToSave
 import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.internal.operators.flowable.FlowableInterval
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_camera.*
-import java.io.File
 import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-/**
- * Created by at-cuongcao on 28/05/2020.
- * ScreenId:xxx
- */
 class CameraActivity : AppCompatActivity() {
 
     private var mCamera: Camera? = null
@@ -56,6 +50,7 @@ class CameraActivity : AppCompatActivity() {
         mCamera?.setDisplayOrientation(90)
 
         val parameters = mCamera?.parameters
+        parameters?.flashMode = Camera.Parameters.FLASH_MODE_TORCH
         parameters?.setRotation(270)
         mCamera?.parameters = parameters
         imageSizes.find { it.selected }?.let {
@@ -65,13 +60,6 @@ class CameraActivity : AppCompatActivity() {
             transparent?.layoutParams?.height =
                 (it.width * resources.displayMetrics.widthPixels.toFloat() / it.height).toInt()
             transparent?.requestLayout()
-            // TODO: bat flash truoc
-            parameters.flashMode = Camera.Parameters.FLASH_MODE_TORCH
-
-            //TODO: bat flash sau
-
-
-
             mCamera?.parameters = parameters
         }
         mPreview = mCamera?.let {
@@ -158,11 +146,7 @@ class CameraActivity : AppCompatActivity() {
                         "YYYYMMddHHmmss",
                         Locale.getDefault()
                     ).format(Calendar.getInstance().timeInMillis)
-                    val dir = File(
-                        Environment.getExternalStoragePublicDirectory(
-                            Environment.DIRECTORY_DCIM
-                        ), "Photo_${getDeviceId()}_$currentDate.jpeg"
-                    )
+                    val dir = createFileToSave()
                     val os = dir.outputStream()
                     mark(
                         p0, SimpleDateFormat(

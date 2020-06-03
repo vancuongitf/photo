@@ -1,7 +1,6 @@
 package cuong.cao.photo
 
 import android.app.Application
-import android.content.Context
 
 class App : Application() {
 
@@ -11,8 +10,6 @@ class App : Application() {
         internal fun getInstance() = instance
     }
 
-    internal var isTop = false
-    internal var contextDecor: Context? = null
     internal var lastAction = 0L
     internal var bootime = 0L
 

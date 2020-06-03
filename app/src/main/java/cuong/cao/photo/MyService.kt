@@ -5,17 +5,17 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.*
-import android.content.pm.ResolveInfo
-import android.graphics.PixelFormat
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.media.AudioManager
-import android.os.*
+import android.os.Build
+import android.os.IBinder
+import android.os.PowerManager
+import android.os.SystemClock
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
-import android.view.View
-import android.view.ViewGroup
-import android.view.WindowManager
 import androidx.core.app.NotificationCompat
 import androidx.media.VolumeProviderCompat
 
@@ -81,18 +81,22 @@ class MyService : Service() {
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        registerReceiver(broadcast, IntentFilter().apply {
-            addAction(Broadcast.ACTION_VOLUME_PRESSED)
-            addAction(Intent.ACTION_SCREEN_ON)
-            addAction(Broadcast.ACTION_COMPLETED)
-        })
-        val audio = (getSystemService(Context.AUDIO_SERVICE) as? AudioManager)
-        val rec = ComponentName(
-            packageName,
-            Broadcast::javaClass.name
-        )
-        audio?.registerMediaButtonEventReceiver(rec)
-        sendNotification()
+        try {
+            registerReceiver(broadcast, IntentFilter().apply {
+                addAction(Broadcast.ACTION_VOLUME_PRESSED)
+                addAction(Intent.ACTION_SCREEN_ON)
+                addAction(Broadcast.ACTION_COMPLETED)
+            })
+            val audio = (getSystemService(Context.AUDIO_SERVICE) as? AudioManager)
+            val rec = ComponentName(
+                packageName,
+                Broadcast::javaClass.name
+            )
+            audio?.registerMediaButtonEventReceiver(rec)
+            sendNotification()
+        } catch (e: Exception) {
+
+        }
         return START_STICKY
     }
 
@@ -129,33 +133,5 @@ class MyService : Service() {
             )
             manager.createNotificationChannel(serviceChannel)
         }
-    }
-
-    private fun launchComponent(packageName: String, name: String) {
-        val launch_intent = Intent("android.intent.action.MAIN")
-        launch_intent.addCategory("android.intent.category.LAUNCHER")
-        launch_intent.component = ComponentName(packageName, name)
-        launch_intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        applicationContext.startActivity(launch_intent)
-    }
-
-    fun getLayoutParams(): WindowManager.LayoutParams? {
-        return WindowManager.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            0,
-            0,
-            WindowManager.LayoutParams.TYPE_APPLICATION,
-            WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED
-                    or WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD,
-            PixelFormat.TRANSPARENT
-        )
-    }
-
-    fun getSystemUiVisibility(): Int {
-        return (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
     }
 }
