@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
 import android.os.Build
-import android.os.Handler
 import android.os.SystemClock
 import android.util.DisplayMetrics
 import android.view.Gravity
@@ -23,12 +22,15 @@ class Broadcast : BroadcastReceiver() {
     companion object {
         internal const val ACTION_VOLUME_PRESSED = "action_volume_pressed"
         internal const val ACTION_COMPLETED = "action_completed"
+        internal const val PERIOD_ACTION_TIME = 10000 // Thoi gian giua hai lan chup
+        internal const val DELAY_AFTER_BOOT =
+            120000 // Thoi gian cho sau khi nhan su kien khoi dong xong
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {
         when (intent?.action) {
             Intent.ACTION_SCREEN_ON, ACTION_VOLUME_PRESSED -> {
-                if (SystemClock.elapsedRealtime() - App.getInstance().lastAction > 10000 && Calendar.getInstance().timeInMillis - 120000 > App.getInstance().bootime) {
+                if (SystemClock.elapsedRealtime() - App.getInstance().lastAction > PERIOD_ACTION_TIME && Calendar.getInstance().timeInMillis - DELAY_AFTER_BOOT > App.getInstance().bootime) {
                     App.getInstance().lastAction = SystemClock.elapsedRealtime()
                     val forMobell = true // TODO: doi thanh false cho dien thoai khac
                     if (forMobell) {
@@ -63,17 +65,6 @@ class Broadcast : BroadcastReceiver() {
                         }
                     }
                 }
-            }
-
-            Intent.ACTION_BOOT_COMPLETED, "android.intent.action.QUICKBOOT_POWERON", Intent.ACTION_LOCKED_BOOT_COMPLETED, Intent.ACTION_REBOOT, "android.intent.action.USER_PRESENT" -> {
-                App.getInstance().bootime = Calendar.getInstance().timeInMillis
-                Handler().postDelayed({
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        context?.startForegroundService(Intent(context, MyService::class.java))
-                    } else {
-                        context?.startService(Intent(context, MyService::class.java))
-                    }
-                }, 120000)
             }
 
             ACTION_COMPLETED -> {
