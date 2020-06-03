@@ -71,7 +71,7 @@ class CameraActivity : AppCompatActivity() {
             preview.addView(it)
         }
         mCamera?.startPreview()
-        val waitingTime = sharedPreferences.getLong("time", 3)
+        val waitingTime = sharedPreferences.getLong("time", 3) // TODO: Thoi gian min khi chup anh.
         FlowableInterval(0, 1, TimeUnit.SECONDS, AndroidSchedulers.mainThread())
             .subscribe {
                 if (it <= waitingTime) {

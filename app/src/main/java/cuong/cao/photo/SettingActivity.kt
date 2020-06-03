@@ -44,7 +44,7 @@ class SettingActivity : AppCompatActivity() {
             button.isChecked = it.selected || i == 2
             radioGroup.addView(button)
         }
-        edtTime.setText(sharedPreferences.getLong("time", 3).toString())
+        edtTime.setText(sharedPreferences.getLong("time", 3).toString()) // TODO: Thoi gian min khi chup anh.
         imgBack.setOnClickListener {
             finish()
         }
@@ -55,7 +55,7 @@ class SettingActivity : AppCompatActivity() {
             imageSizes[radioGroup.checkedRadioButtonId - 1].selected = true
             sharedPreferences.edit().putString("images", Gson().toJson(imageSizes)).apply()
             var time = edtTime.text.toString().toLong()
-            if (time < 3) {
+            if (time < 3) { // TODO: Thoi gian min khi chup anh.
                 time = 3
             }
             sharedPreferences.edit().putLong("time", time).apply()

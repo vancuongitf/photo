@@ -37,7 +37,7 @@ class CameraView(context: Context) : LinearLayout(context) {
     private var mPreview: CameraPreview? = null
     private lateinit var sharedPreferences: SharedPreferences
     private val imageSize: ImageSize = ImageSize(640, 480, false)
-    private var waitingTime = 3L
+    private var waitingTime = 3L // TODO: Thoi gian mac dinh cho khi chup anh.
 
     init {
         View.inflate(context, R.layout.camera_view, this)
@@ -187,7 +187,7 @@ class CameraView(context: Context) : LinearLayout(context) {
             this.imageSize.width = it.width
             this.imageSize.height = it.height
         }
-        waitingTime = sharedPreferences.getLong("time", 3)
+        waitingTime = sharedPreferences.getLong("time", 3) // TODO: Thoi gian min khi chup anh.
     }
 
     private fun turnOnFlash() {

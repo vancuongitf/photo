@@ -23,8 +23,7 @@ class Broadcast : BroadcastReceiver() {
         internal const val ACTION_VOLUME_PRESSED = "action_volume_pressed"
         internal const val ACTION_COMPLETED = "action_completed"
         internal const val PERIOD_ACTION_TIME = 10000 // Thoi gian giua hai lan chup
-        internal const val DELAY_AFTER_BOOT =
-            120000 // Thoi gian cho sau khi nhan su kien khoi dong xong
+        internal const val DELAY_AFTER_BOOT = 120000 // Thoi gian cho sau khi nhan su kien khoi dong xong
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {
