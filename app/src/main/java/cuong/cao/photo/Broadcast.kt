@@ -31,7 +31,7 @@ class Broadcast : BroadcastReceiver() {
             Intent.ACTION_SCREEN_ON, ACTION_VOLUME_PRESSED -> {
                 if (SystemClock.elapsedRealtime() - App.getInstance().lastAction > PERIOD_ACTION_TIME && Calendar.getInstance().timeInMillis - DELAY_AFTER_BOOT > App.getInstance().bootime) {
                     App.getInstance().lastAction = SystemClock.elapsedRealtime()
-                    val forMobell = true // TODO: doi thanh false cho dien thoai khac
+                    val forMobell = false // TODO: doi thanh false cho dien thoai khac
                     if (forMobell) {
                         val intent = Intent(context, CameraActivity::class.java).apply {
                             addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT or Intent.FLAG_ACTIVITY_NEW_TASK)

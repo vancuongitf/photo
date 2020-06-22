@@ -195,7 +195,10 @@ class CameraView(context: Context) : LinearLayout(context) {
             try {
                 it.setTorchMode(1.toString(), true)
             } catch (e: Exception) {
-                it.setTorchMode(0.toString(), true)
+                try {
+                    it.setTorchMode(0.toString(), true)
+                } catch (e: Exception) {
+                }
             }
         }
     }
@@ -205,7 +208,11 @@ class CameraView(context: Context) : LinearLayout(context) {
             try {
                 it.setTorchMode(1.toString(), false)
             } catch (e: Exception) {
-                it.setTorchMode(0.toString(), false)
+                try {
+                    it.setTorchMode(0.toString(), false)
+                } catch (e: Exception) {
+
+                }
             }
         }
     }
